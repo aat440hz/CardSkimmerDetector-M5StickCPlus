@@ -1,7 +1,7 @@
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEScan.h>
-#include <regex> // Include regex library for pattern matching
+#include <regex>
 
 // Undefine min and max macros to avoid conflicts
 #undef min
@@ -22,7 +22,8 @@ void displaySkimmers();
 
 class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
     void onResult(BLEAdvertisedDevice advertisedDevice) {
-        String deviceInfo = "Name: " + String(advertisedDevice.getName().c_str()) + ", Addr: " + String(advertisedDevice.getAddress().toString().c_str());
+        String deviceInfo = "Name: " + String(advertisedDevice.getName().c_str()) +
+                            ", Addr: " + String(advertisedDevice.getAddress().toString().c_str());
         
         // Regular expression to match "RNBT-xxxx" pattern (xxxx being any alphanumeric characters)
         std::regex rnbtPattern("RNBT-[A-Za-z0-9]{4}");
@@ -32,20 +33,31 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
         String deviceAddress = String(advertisedDevice.getAddress().toString().c_str());
         bool isRnSkimmer = deviceAddress.startsWith(macPrefix);
 
+        // Assume MAC format is YY:YY:MM:DD:XX:XX for manufacturing date check
+        int year1 = (deviceAddress.charAt(0) - '0') * 10 + (deviceAddress.charAt(1) - '0');
+        int year2 = (deviceAddress.charAt(3) - '0') * 10 + (deviceAddress.charAt(4) - '0');
+        int month = (deviceAddress.charAt(6) - '0') * 10 + (deviceAddress.charAt(7) - '0');
+        int day = (deviceAddress.charAt(9) - '0') * 10 + (deviceAddress.charAt(10) - '0');
+        int year = year1 * 100 + year2;
+
         // Convert the device name to std::string for regex matching
         std::string devName = advertisedDevice.getName();
 
-        // Check if device name matches any known skimmer names, the RNBT pattern, or has the RN MAC prefix
+        // Check if device name matches any known skimmer names or the RNBT pattern
         bool isSkimmer = false;
         for (String skimmerName : knownSkimmerNames) {
-            if (devName.find(skimmerName.c_str()) != std::string::npos || std::regex_search(devName, rnbtPattern) || isRnSkimmer) {
+            if (devName.find(skimmerName.c_str()) != std::string::npos || 
+                std::regex_search(devName, rnbtPattern) || 
+                isRnSkimmer || 
+                (year >= 2013 && month >= 1 && month <= 12 && day >= 1 && day <= 31)) {
                 detectedSkimmers.push_back(deviceInfo); // Add to skimmer list
                 isSkimmer = true;
                 displaySkimmers(); // Display only skimmers
                 return; // Exit early to avoid overwriting the display with normal devices
             }
         }
-        
+
+        // If not a skimmer, add to general device list
         if (!isSkimmer) {
             if (detectedDevices.size() >= maxDevicesStored) {
                 detectedDevices.erase(detectedDevices.begin());
