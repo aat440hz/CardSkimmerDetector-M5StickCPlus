@@ -1,19 +1,3 @@
-/*
- * Testing Script for CardSkimmerDetector-M5StickCPlus
- * 
- * Prerequisites:
- * 1. Ensure you have the ESP32 board definitions installed in your Arduino IDE.
- *    Add the following ESP32 Boards Manager URL: https://dl.espressif.com/dl/package_esp32_index.json
- *    Go to Arduino IDE > Preferences and paste the URL into the "Additional Board Manager URLs" field.
- * 
- * 2. Install the board definitions:
- *    Open the Boards Manager from Tools > Board:
- *    Search for ESP32 and install the latest version.
- * 
- * 3. Select Your Board:
- *    Once installed, select the "M5StickC" board from Tools > Board menu.
- */
-
 #include <M5StickCPlus.h>
 #include <BLEDevice.h>
 #include <BLEUtils.h>
