@@ -31,7 +31,7 @@ void setup() {
   Serial.begin(115200);
 
   // Change MAC here using ESP-IDF
-  uint8_t newMAC[6] = {0x00, 0x06, 0x66, 0x05, 0x09, 0x04}; // Replace XX with desired values
+  uint8_t newMAC[6] = {0x20, 0x24, 0x12, 0x31, 0x09, 0x04}; // Replace XX with desired values
   esp_base_mac_addr_set(newMAC);  // Set new MAC address (This is a placeholder and might not work as expected without proper setup)
 
   // Initialize BLE Device with a name
