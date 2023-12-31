@@ -10,7 +10,7 @@
 #include <M5StickCPlus.h> // Include after undefining macros
 
 int scanTime = 10; // Duration for a BLE scan
-String knownSkimmerNames[] = {"HC-03", "HC-05", "HC-06", "RNBT"}; // Known skimmer module names
+String knownSkimmerNames[] = {"HC-03", "HC-05", "HC-06", "HC-08", "RNBT"}; // Known skimmer module names
 std::vector<String> detectedDevices; // List to hold detected devices
 std::vector<String> detectedSkimmers; // List to hold detected skimmers
 int maxDevicesDisplayed = 12; // Adjust based on your display size
