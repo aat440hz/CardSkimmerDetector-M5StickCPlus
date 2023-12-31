@@ -1,10 +1,16 @@
-#include <M5StickCPlus.h>
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEScan.h>
+#include <regex> // Include regex library for pattern matching
+
+// Undefine min and max macros to avoid conflicts
+#undef min
+#undef max
+
+#include <M5StickCPlus.h> // Include after undefining macros
 
 int scanTime = 10; // Duration for a BLE scan
-String knownSkimmerNames[] = {"HC-03", "HC-05", "HC-06"}; // Known skimmer module names
+String knownSkimmerNames[] = {"HC-03", "HC-05", "HC-06", "RNBT"}; // Known skimmer module names
 std::vector<String> detectedDevices; // List to hold detected devices
 std::vector<String> detectedSkimmers; // List to hold detected skimmers
 int maxDevicesDisplayed = 12; // Adjust based on your display size
@@ -18,10 +24,21 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
     void onResult(BLEAdvertisedDevice advertisedDevice) {
         String deviceInfo = "Name: " + String(advertisedDevice.getName().c_str()) + ", Addr: " + String(advertisedDevice.getAddress().toString().c_str());
         
-        // Check if device name matches any known skimmer names
+        // Regular expression to match "RNBT-xxxx" pattern (xxxx being any alphanumeric characters)
+        std::regex rnbtPattern("RNBT-[A-Za-z0-9]{4}");
+
+        // Check for RN modules with the prefix 00:06:66 in the MAC address
+        String macPrefix = "00:06:66";
+        String deviceAddress = String(advertisedDevice.getAddress().toString().c_str());
+        bool isRnSkimmer = deviceAddress.startsWith(macPrefix);
+
+        // Convert the device name to std::string for regex matching
+        std::string devName = advertisedDevice.getName();
+
+        // Check if device name matches any known skimmer names, the RNBT pattern, or has the RN MAC prefix
         bool isSkimmer = false;
         for (String skimmerName : knownSkimmerNames) {
-            if (advertisedDevice.getName().find(skimmerName.c_str()) != std::string::npos) {
+            if (devName.find(skimmerName.c_str()) != std::string::npos || std::regex_search(devName, rnbtPattern) || isRnSkimmer) {
                 detectedSkimmers.push_back(deviceInfo); // Add to skimmer list
                 isSkimmer = true;
                 displaySkimmers(); // Display only skimmers
@@ -31,7 +48,6 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
         
         if (!isSkimmer) {
             if (detectedDevices.size() >= maxDevicesStored) {
-                // Remove the oldest device to make room for the new one
                 detectedDevices.erase(detectedDevices.begin());
             }
             detectedDevices.push_back(deviceInfo); // Add to general device list
