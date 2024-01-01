@@ -33,12 +33,15 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
         String deviceAddress = String(advertisedDevice.getAddress().toString().c_str());
         bool isRnSkimmer = deviceAddress.startsWith(macPrefix);
 
-        // Assume MAC format is YY:YY:MM:DD:XX:XX for manufacturing date check
+ // Assume MAC format is YY:YY:MM:DD:XX:XX for manufacturing date check
         int year1 = (deviceAddress.charAt(0) - '0') * 10 + (deviceAddress.charAt(1) - '0');
         int year2 = (deviceAddress.charAt(3) - '0') * 10 + (deviceAddress.charAt(4) - '0');
         int month = (deviceAddress.charAt(6) - '0') * 10 + (deviceAddress.charAt(7) - '0');
         int day = (deviceAddress.charAt(9) - '0') * 10 + (deviceAddress.charAt(10) - '0');
         int year = year1 * 100 + year2;
+
+        // Update to the current year as the upper limit for year check
+        int currentYear = 2024; // Replace 20XX with the current year or fetch dynamically
 
         // Convert the device name to std::string for regex matching
         std::string devName = advertisedDevice.getName();
@@ -49,7 +52,7 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
             if (devName.find(skimmerName.c_str()) != std::string::npos || 
                 std::regex_search(devName, rnbtPattern) || 
                 isRnSkimmer || 
-                (year >= 2013 && month >= 1 && month <= 12 && day >= 1 && day <= 31)) {
+                (year >= 2013 && year <= currentYear && month >= 1 && month <= 12 && day >= 1 && day <= 31)) {
                 detectedSkimmers.push_back(deviceInfo); // Add to skimmer list
                 isSkimmer = true;
                 displaySkimmers(); // Display only skimmers
