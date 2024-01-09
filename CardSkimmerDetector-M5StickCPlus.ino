@@ -9,6 +9,9 @@
 
 #include <M5StickCPlus.h> // Include after undefining macros
 
+// Uncomment the following line to use the dual button unit
+#define USE_DUAL_BUTTON_UNIT
+
 int scanTime = 10; // Duration for a BLE scan
 String knownSkimmerNames[] = {"HC-03", "HC-05", "HC-06", "HC-08", "RNBT"}; // Known skimmer module names
 std::vector<String> detectedDevices; // List to hold detected devices
@@ -33,7 +36,7 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
         String deviceAddress = String(advertisedDevice.getAddress().toString().c_str());
         bool isRnSkimmer = deviceAddress.startsWith(macPrefix);
 
- // Assume MAC format is YY:YY:MM:DD:XX:XX for manufacturing date check
+        // Assume MAC format is YY:YY:MM:DD:XX:XX for manufacturing date check
         int year1 = (deviceAddress.charAt(0) - '0') * 10 + (deviceAddress.charAt(1) - '0');
         int year2 = (deviceAddress.charAt(3) - '0') * 10 + (deviceAddress.charAt(4) - '0');
         int month = (deviceAddress.charAt(6) - '0') * 10 + (deviceAddress.charAt(7) - '0');
@@ -75,35 +78,57 @@ void setup() {
     M5.begin();
     Serial.begin(115200);
     BLEDevice::init("");
+
+    #ifdef USE_DUAL_BUTTON_UNIT
+    pinMode(32, INPUT); // Red button
+    pinMode(33, INPUT); // Blue button
+    #endif
+
     BLEScan* pBLEScan = BLEDevice::getScan();
     pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
-    pBLEScan->setActiveScan(true); // Active scan uses more power, but gets more information
-    pBLEScan->start(scanTime, true); // Start continuous scanning
+    pBLEScan->setActiveScan(true);
+    pBLEScan->start(scanTime, true);
 }
 
 void loop() {
     delay(200); // Reduced delay for responsive button detection
     M5.update(); // Update the state of all buttons
-    
-    // Check if Button A is pressed
+
+    #ifdef USE_DUAL_BUTTON_UNIT
+    int redButtonState = digitalRead(32);
+    int blueButtonState = digitalRead(33);
+    #endif
+
+    // Check if Onboard Button A or external red button is pressed
+    #ifdef USE_DUAL_BUTTON_UNIT
+    if (M5.BtnA.wasPressed() || redButtonState == LOW) {
+    #else
     if (M5.BtnA.wasPressed()) {
+    #endif
         BLEScan* pBLEScan = BLEDevice::getScan();
         pBLEScan->clearResults(); // Clear previous scan results
         pBLEScan->start(scanTime, true); // Start another scan
+    }
+
+    // Check if Onboard Button B or external blue button is pressed
+    #ifdef USE_DUAL_BUTTON_UNIT
+    if (M5.BtnB.wasPressed() || blueButtonState == LOW) {
+    #else
+    if (M5.BtnB.wasPressed()) {
+    #endif
+        detectedSkimmers.clear(); // Clear the list of detected skimmers
+        updateDisplay(); // Return to normal display
     }
 }
 
 void updateDisplay() {
     M5.Lcd.fillScreen(BLACK);
     M5.Lcd.setCursor(0, 0);
-    // Display the most recent devices up to the maxDevicesDisplayed
     for (int i = std::max(0, (int)detectedDevices.size() - maxDevicesDisplayed); i < detectedDevices.size(); ++i) {
         M5.Lcd.println(detectedDevices[i]);
     }
-
-    // Add the "Press A to scan" message at the bottom
-    M5.Lcd.setCursor(0, M5.Lcd.height() - 16); // Adjust the Y position as needed
-    M5.Lcd.println("Press A to scan");
+    M5.Lcd.setCursor(0, M5.Lcd.height() - 16);
+    M5.Lcd.println("Press A or Red to scan");
 }
 
 void displaySkimmers() {
@@ -113,16 +138,16 @@ void displaySkimmers() {
     for (String& skimmer : detectedSkimmers) {
         M5.Lcd.println(skimmer);
     }
-
-    // Checking for Button B to reset to scan mode
     while(true) {
-        delay(200); // Delay for button check loop
-        M5.update(); // Update button state
-        
-        // If Button B is pressed, clear skimmers and return to normal scanning mode
+        delay(200);
+        M5.update();
+        #ifdef USE_DUAL_BUTTON_UNIT
+        if (M5.BtnB.wasPressed() || digitalRead(33) == LOW) {
+        #else
         if (M5.BtnB.wasPressed()) {
-            detectedSkimmers.clear(); // Clear the list of detected skimmers
-            updateDisplay(); // Return to normal display
+        #endif
+            detectedSkimmers.clear();
+            updateDisplay();
             return; // Exit the function to resume scanning
         }
     }
