@@ -10,7 +10,7 @@
 #include <M5StickCPlus.h> // Include after undefining macros
 
 // Uncomment the following line to use the dual button unit
-#define USE_DUAL_BUTTON_UNIT
+// #define USE_DUAL_BUTTON_UNIT
 
 int scanTime = 10; // Duration for a BLE scan
 String knownSkimmerNames[] = {"HC-03", "HC-05", "HC-06", "HC-08", "RNBT"}; // Known skimmer module names
