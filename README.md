@@ -1,6 +1,6 @@
 # CardSkimmerDetector
 
-The CardSkimmerDetector is an open-source tool designed for law enforcement and security professionals to detect Bluetooth Low Energy (BLE) skimming devices. It is built using the M5StickC Plus platform and can help identify known skimmer module names in the vicinity.
+The CardSkimmerDetector is an open-source tool designed for law enforcement and security professionals to detect Bluetooth Low Energy (BLE) skimming devices. It is built using the M5StickC Plus platform and can help identify skimmers by known device names and MAC address prefixes.
 
 ## Features
 
