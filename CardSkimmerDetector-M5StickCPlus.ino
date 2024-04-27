@@ -76,6 +76,7 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
 
 void setup() {
     M5.begin();
+    M5.Lcd.setRotation(1);
     Serial.begin(115200);
     BLEDevice::init("");
 
